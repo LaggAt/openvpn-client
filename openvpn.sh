@@ -185,6 +185,10 @@ vpn() { local server="$1" user="$2" pass="$3" port="${4:-1194}" i \
         [[ "${4:-""}" ]] && firewall $port
 }
 
+append_config() {
+    echo "$@" >> $conf
+}
+
 ### vpnportforward: setup vpn port forwarding
 # Arguments:
 #   port) forwarded port
@@ -235,6 +239,10 @@ Options (fields in '[]' are optional, '<>' are required):
                 <user> to authenticate as
                 <password> to authenticate with
                 optional arg: [port] to use, instead of default
+    -a 'additional-config-line'
+                optional arg, following -v.
+                this adds a line to the in -v generated vpn.conf file
+                may be used multiple times
 
 The 'command' (if provided and valid) will be run instead of openvpn
 " >&2
@@ -264,7 +272,7 @@ while read i; do
     vpnportforward "$i"
 done < <(env | awk '/^VPNPORT[0-9=_]/ {sub (/^[^=]*=/, "", $0); print}')
 
-while getopts ":hc:df:m:p:R:r:v:" opt; do
+while getopts ":hc:df:m:p:R:r:v:a:" opt; do
     case "$opt" in
         h) usage ;;
         c) cert_auth "$OPTARG" ;;
@@ -275,6 +283,7 @@ while getopts ":hc:df:m:p:R:r:v:" opt; do
         R) return_route6 "$OPTARG" ;;
         r) return_route "$OPTARG" ;;
         v) eval vpn $(sed 's/^/"/; s/$/"/; s/;/" "/g' <<< $OPTARG) ;;
+        a) append_config $OPTARG ;;
         "?") echo "Unknown option: -$OPTARG"; usage 1 ;;
         ":") echo "No argument value for option: -$OPTARG"; usage 2 ;;
     esac
