@@ -239,6 +239,8 @@ Options (fields in '[]' are optional, '<>' are required):
                 <user> to authenticate as
                 <password> to authenticate with
                 optional arg: [port] to use, instead of default
+    -V 'config.ovpn'
+                Use a different config file
     -a 'additional-config-line'
                 optional arg, following -v.
                 this adds a line to the in -v generated vpn.conf file
@@ -272,7 +274,7 @@ while read i; do
     vpnportforward "$i"
 done < <(env | awk '/^VPNPORT[0-9=_]/ {sub (/^[^=]*=/, "", $0); print}')
 
-while getopts ":hc:df:m:p:R:r:v:a:" opt; do
+while getopts ":hc:df:m:p:R:r:v:V:a:" opt; do
     case "$opt" in
         h) usage ;;
         c) cert_auth "$OPTARG" ;;
@@ -284,6 +286,7 @@ while getopts ":hc:df:m:p:R:r:v:a:" opt; do
         r) return_route "$OPTARG" ;;
         v) eval vpn $(sed 's/^/"/; s/$/"/; s/;/" "/g' <<< $OPTARG) ;;
         a) append_config $OPTARG ;;
+        V) conf=$dir/$OPTARG ;;
         "?") echo "Unknown option: -$OPTARG"; usage 1 ;;
         ":") echo "No argument value for option: -$OPTARG"; usage 2 ;;
     esac
